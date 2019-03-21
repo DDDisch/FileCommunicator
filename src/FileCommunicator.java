@@ -1,8 +1,8 @@
 import java.io.*;
 
 public class FileCommunicator  extends FileReader {
-    private BufferedReader bufferedReader = new BufferedReader(this);
-    private String line;
+    private BufferedReader bufferedReader;
+    private String line = "", tmpLine = "";
     private File file;
 
     public FileCommunicator(File file) throws FileNotFoundException {
@@ -11,10 +11,9 @@ public class FileCommunicator  extends FileReader {
     }
 
     public String readFile() {
+        bufferedReader = new BufferedReader(this);
         try {
-            while((line = bufferedReader.readLine()) != null) {
-              line += line;
-            }
+            while ((tmpLine = bufferedReader.readLine()) != null) line = String.format("%s%s", line, String.format("%s\n", tmpLine));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -22,14 +21,18 @@ public class FileCommunicator  extends FileReader {
         return line;
     }
 
-    public void exit() throws IOException {
-        bufferedReader.close();
-        this.close();
+    public void exit() {
+        try {
+            bufferedReader.close();
+            this.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean writeLine(String s) throws IOException {
         class MyFileWriter extends FileWriter {
-            private BufferedWriter bufferedWriter = new BufferedWriter(this);
+            private BufferedWriter bufferedWriter;
 
             private MyFileWriter(String fileName) throws IOException {
                 super(fileName);
@@ -52,18 +55,22 @@ public class FileCommunicator  extends FileReader {
             }
 
             private boolean writeLine(String s) {
+                bufferedWriter = new BufferedWriter(this);
+
                 try {
                     bufferedWriter.write(s);
                     bufferedWriter.newLine();
+                    bufferedWriter.close();
+                    this.close();
                     return true;
                 } catch (IOException e) {
-                    System.out.println("Error while writing to File");
+                    e.printStackTrace();
                     return false;
                 }
             }
         }
 
-        MyFileWriter tmp = new MyFileWriter(file);
+        MyFileWriter tmp = new MyFileWriter(this.file, true);
         return tmp.writeLine(s);
     }
 }
